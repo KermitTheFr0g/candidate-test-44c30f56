@@ -43,6 +43,23 @@ services:
       db:
         condition: service_healthy
 
+  # Outbound webhook delivery: polls the outbox table. Same image and settings
+  # as the backend. No autoreload, so restart it after changing webhook code.
+  worker:
+    build: ./backend
+    user: "${UID:-1000}:${GID:-1000}"
+    command: ["uv", "run", "python", "manage.py", "deliver_webhooks"]
+    environment:
+      DB_HOST: db
+      EMAIL_HOST: mailpit
+      DEBUG: "True"
+    volumes:
+      - ./backend:/app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+
   frontend:
     build: ./frontend
     environment:
