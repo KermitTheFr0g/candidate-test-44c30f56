@@ -28,9 +28,6 @@ services:
 
   backend:
     build: ./backend
-    # Run as the host user so files written to the bind mount (migrations,
-    # caches) aren't root-owned.
-    user: "${UID:-1000}:${GID:-1000}"
     environment:
       DB_HOST: db
       EMAIL_HOST: mailpit
@@ -43,11 +40,8 @@ services:
       db:
         condition: service_healthy
 
-  # Outbound webhook delivery: polls the outbox table. Same image and settings
-  # as the backend. No autoreload, so restart it after changing webhook code.
   worker:
     build: ./backend
-    user: "${UID:-1000}:${GID:-1000}"
     command: ["uv", "run", "python", "manage.py", "deliver_webhooks"]
     environment:
       DB_HOST: db
